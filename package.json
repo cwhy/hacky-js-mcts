@@ -1,6 +1,8 @@
 {
     "dependencies": {
-        "@tensorflow/tfjs": "^0.15.1"
+        "@tensorflow/tfjs": "^0.15.1",
+        "circular-json-es6": "^2.0.2",
+        "math.js": "^1.1.43"
     },
     "devDependencies": {
         "parcel-bundler": "^1.11.0"

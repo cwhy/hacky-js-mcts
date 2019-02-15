@@ -1,41 +1,70 @@
-import * as mcts from "mcts.js"
+import {createActionNode,
+    initStateNode,
+    createStateNode,
+    actionSelection,
+    getScore,
+    update} from "./mcts.js"
+import {reset,
+    debug,
+    debugState,
+    hashState} from "./utils.js"
+import server from "./fakeserver.js"
 
-const body = document.getElementsByTagName('body')[0];
-const reset = () => {body.innerHTML = "Hell-o-Wor LD" + '<br><br>'};
-const debug = x => {body.innerHTML += "debug: " + x + '<br>'};
 reset();
 
-
-const createActionStates = (acts) => acts.reduce(
-    (acc, nextE) => {acc[nextE] = null; return acc},
-    {}
-)
-
-const createStateNode = (p, acts) => ({
-    action: null,
-    visits: 1,
-    score: 0,
-    parent: p,
-    children:createActionStates(acts)});
-
-const createActionStateNode = (p, a) => ({
-    action: a,
-    visits: 1,
-    score: 0,
-    parent: p,
-    children:[]});
-
 const mt = new Map();
-var runs = 0
+var actionNode;
+var stateNode;
+var rootNode;
+var action;
+var state;
 
-// init, get avail actions
-const actions = ['1', '2', '3']
-// got state z
-const z = [1, 0, 0, 2 ,3];
-const rootNode = createStateNode(null, actions);
-mt.set(z, rootNode);
-debug(z);
-debug(mt.get(z).parent);
-debug(mcts.actionSelection(rootNode))
+const actions = server.getGameInfo().availableActions;
 
+const maxRuns = 2000;
+const record = [];
 
+for (var run = 0; run < maxRuns; run++){
+    state = server.newGame();
+    const stateHash = hashState(state.vector)
+    if (mt.has(stateHash)){
+        stateNode = mt.get(stateHash)
+        stateNode.visits += 1;
+    } else {
+        stateNode = initStateNode(null, actions);
+        mt.set(stateHash, stateNode);
+    }
+    rootNode = stateNode;
+    action = actionSelection(stateNode, run, true);
+
+    state = server.send(action);
+    var safety = 0;
+    while (safety < 100 && state.gameOver === false){
+        actionNode = createActionNode(stateNode, action)
+        stateNode = createStateNode(
+            hashState(state.vector),
+            mt, actionNode, actions)
+        action = actionSelection(stateNode, run);
+        state = server.send(action);
+        safety += 1
+    }
+    // console.log(mt)
+    // debug(mt)
+    var score;
+    if (state.isWinner===null){
+        score = 0.5
+    } else {
+        score = state.isWinner ? 1 : 0;
+    }
+    record.push(state.isWinner);
+    update(actionNode, score);
+    // debug(mt)
+    //debugState(state.vector)
+    console.log(run)
+}
+console.log(record.map((t)=>t===null?'_':(t?1:0)).join(''))
+debugState(state.vector)
+debug(rootNode)
+debug("=-=-=-=-=-=-=-=-=-=-")
+debug([... mt].map(([key, val])=> [key, getScore(val, run), val.visits].join(', ')))
+//debug([... mt].map(([key, val])=> getScore(val, run)!==null?[key, getScore(val, run), val.visits].join(', '):getScore(val, run)))
