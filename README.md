@@ -20,10 +20,10 @@ npm install
 GET /game/info
 ```
 sample returns:
-```$json
+```json
 {
-    availableActions: ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
-    nPlayers: 2
+    "availableActions": ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
+    "nPlayers": 2
 }
 ```
 
@@ -33,9 +33,9 @@ POST /game/new
 ```
 
 sample submissions:
-```$json
+```json
 {
-    botAgents: [0]
+    "botAgents": [0]
 }
 ```
 `botAgents` is a list of integers that represent the id
