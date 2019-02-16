@@ -1,5 +1,3 @@
-import * as CircularJSON from "circular-json-es6"
-
 const body = document.getElementsByTagName('body')[0];
 const mapToObj = (map) => {
     return [...map].reduce((acc, val) => {
